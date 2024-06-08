@@ -64,7 +64,8 @@ logs/
 *.log
 
 # Data
-data/
+data/*.json
+data/*.csv
 
 # Figures
 figures/
