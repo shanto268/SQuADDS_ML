@@ -4,13 +4,27 @@ import os
 import pandas as pd
 import yaml
 from sklearn.model_selection import train_test_split
-
+import logging
 from qubit_cavity_model.dnn_model import DNNModel
 from qubit_cavity_model.neural_network_model import NeuralNetworkModel
 from qubit_cavity_model.random_forest_model import RandomForestModel
 from qubit_cavity_model.xgboost_model import XGBoostModel
 from qubit_cavity_model.lightgbm_model import LightGBMModel
+from datetime import datetime
 
+# Setup logging
+os.makedirs('logs', exist_ok=True)
+timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+logging.basicConfig(filename=f'logs/training_{timestamp}.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+def create_tree(directories):
+    # Create directories if they do not exist
+    for directory in directories:
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+            print(f"Directory {directory} created.")
+        else:
+            print(f"Directory {directory} already exists.")
 
 def load_config(config_path):
     with open(config_path, 'r') as file:
@@ -33,6 +47,11 @@ def get_model(config):
         raise ValueError(f"Unsupported model type: {model_name}")
 
 def main(config_path, no_hyper_opt):
+    # Create directories
+    directories = ['predictions', 'weights', 'logs', 'figures']
+    create_tree(directories)
+
+
     config = load_config(config_path)
     config_name = os.path.basename(config_path).split('.')[0]
     model_name = config['model']

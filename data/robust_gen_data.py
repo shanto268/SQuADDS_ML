@@ -3,6 +3,8 @@ import numpy as np
 from concurrent.futures import ProcessPoolExecutor
 from squadds import SQuADDS_DB, Analyzer
 import os
+import signal
+import sys
 
 # Define the ranges for each parameter
 qubit_frequency_range = np.linspace(4, 7, num=10)
@@ -25,7 +27,6 @@ def generate_target_params_df(qubit_freq, anharm, cavity_freq, kappa, g):
 
 # Function to process each DataFrame and get the merged DataFrame
 def process_df(target_params_df):
-    print("Instantiating Analyzer Object...")
     analyzer = Analyzer()
     merged_df = analyzer.get_df_with_coupling(target_params_df.iloc[0])
 
@@ -44,7 +45,7 @@ def process_df(target_params_df):
         df[col] = df[col].apply(string_to_float)
 
     # Apply conversions for specific fields
-    with ProcessPoolExecutor(max_workers=32) as executor:
+    with ProcessPoolExecutor(max_workers=64) as executor:
         results = list(executor.map(apply_conversions, [row for _, row in df.iterrows()]))
 
     # Convert results back to DataFrame
@@ -57,15 +58,6 @@ def process_df(target_params_df):
 
 # Function to convert string to float
 def string_to_float(string):
-    """
-    Converts a string representation of a number to a float.
-
-    Args:
-        string (str): The string representation of the number.
-
-    Returns:
-        float: The converted float value.
-    """
     return float(string[:-2])
 
 # Function to apply conversions for specific fields
@@ -78,7 +70,8 @@ def apply_conversions(row):
     return row
 
 # Function to handle the processing and combining of results
-def parallel_process_and_combine(dfs, max_workers=4, save_interval=10):
+def parallel_process_and_combine(dfs, max_workers=64, save_interval=10):
+    global combined_merged_df, current_index
     combined_merged_df = pd.DataFrame()
     progress_file = "progress.txt"
     start_index = 0
@@ -91,20 +84,32 @@ def parallel_process_and_combine(dfs, max_workers=4, save_interval=10):
     with ProcessPoolExecutor(max_workers=max_workers) as executor:
         for i, merged_df in enumerate(executor.map(process_df, dfs[start_index:]), start=start_index):
             combined_merged_df = pd.concat([combined_merged_df, merged_df], ignore_index=True)
+            current_index = i
 
             # Save progress at intervals
             if (i + 1) % save_interval == 0:
-                combined_merged_df.to_csv("quarter_wave_dataset.csv", index=False)
-                combined_merged_df.to_parquet("quarter_wave_dataset.parquet", index=False)
-                with open(progress_file, "w") as f:
-                    f.write(str(i + 1))
-    
+                save_progress(combined_merged_df, i + 1)
+
     # Save the final results
-    combined_merged_df.to_csv("quarter_wave_dataset.csv", index=False)
-    combined_merged_df.to_parquet("quarter_wave_dataset.parquet", index=False)
-    os.remove(progress_file)  # Remove progress file upon successful completion
+    save_progress(combined_merged_df, len(dfs))
 
     return combined_merged_df
+
+def save_progress(df, index):
+    df.to_csv("quarter_wave_dataset.csv", index=False)
+    df.to_parquet("quarter_wave_dataset.parquet", index=False)
+    with open("progress.txt", "w") as f:
+        f.write(str(index))
+
+def signal_handler(sig, frame):
+    save_progress(combined_merged_df, current_index)
+    sys.exit(0)
+
+# Register the signal handler for multiple termination signals
+signal.signal(signal.SIGINT, signal_handler)   # Interrupt from keyboard (Ctrl+C)
+signal.signal(signal.SIGTERM, signal_handler)  # Termination signal
+signal.signal(signal.SIGHUP, signal_handler)   # Hangup detected on controlling terminal
+signal.signal(signal.SIGQUIT, signal_handler)  # Quit from keyboard
 
 # Define the ranges for each parameter
 qubit_frequency_range = np.linspace(4, 7, num=10)
@@ -133,10 +138,9 @@ target_params_dfs = [
 ]
 
 # Process all DataFrames in parallel and combine them
-combined_merged_df = parallel_process_and_combine(target_params_dfs, max_workers=32)
+combined_merged_df = parallel_process_and_combine(target_params_dfs, max_workers=64)
 print("Processing done!")
 
 # Save the final results
-combined_merged_df.to_csv("quarter_wave_dataset_final.csv", index=False)
-combined_merged_df.to_parquet("quarter_wave_dataset_final.parquet", index=False)
-
+combined_merged_df.to_csv("quarter_wave_dataset.csv", index=False)
+combined_merged_df.to_parquet("quarter_wave_dataset.parquet", index=False)

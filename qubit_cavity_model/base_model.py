@@ -7,10 +7,7 @@ from sklearn.metrics import r2_score
 import logging
 from datetime import datetime
 
-# Setup logging
-os.makedirs('logs', exist_ok=True)
-timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-logging.basicConfig(filename=f'logs/training_{timestamp}.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 
 class BaseModel(ABC):
     def __init__(self):
