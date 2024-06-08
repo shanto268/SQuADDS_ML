@@ -52,7 +52,6 @@ The models are trained using features such as `qubit_frequency_GHz`, `anharmonic
     ```bash
     pip install -r requirements.txt
     ```
-
 ## Usage
 
 ### Configuration
@@ -85,14 +84,30 @@ target_cavity:
 To train and evaluate a model, run the `main.py` script with the path to the configuration file:
 
 ```bash
-python main.py config/config.yaml
+python main.py --config config/config.yaml
 ```
 
-The script will preprocess the data, train the specified model, perform hyperparameter optimization, evaluate the model, and save the trained model weights.
+The script will preprocess the data, train the specified model, perform hyperparameter optimization (if enabled), evaluate the model, and save the trained model weights.
+
+#### Disabling Hyperparameter Optimization
+
+If you want to train the model without performing hyperparameter optimization, you can use the `--no_hyper_opt` flag. This can be useful for quickly testing the model training process or if you are confident that the default hyperparameters are sufficient.
+
+```bash
+python main.py --config config/config.yaml --no_hyper_opt
+```
+
+This flag will skip the hyperparameter optimization step, allowing the model to be trained with the default or previously set parameters.
 
 ### Prediction
 
-To make predictions on new data, ensure the trained models are saved and run the script again with the new data specified in the configuration file.
+To make predictions on new data, ensure the trained models are saved and run the `predict.py` script with the new data specified in the configuration file:
+
+```bash
+python predict.py --config config/config.yaml
+```
+
+The script will load the trained model, preprocess the new data, and generate predictions, which will be saved to the specified output file.
 
 ## Hyperparameter Optimization
 
