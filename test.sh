@@ -16,7 +16,7 @@ conda activate lfl
 export OMP_NUM_THREADS=4
 
 # Change to the directory where your scripts are located
-cd /project/shaas_31/shanto/summer24/SQuADDS_ML
+cd /project/shaas_31/shanto/summer24/SQuADDS_ML 
 
 # Run the commands simultaneously in the background
 python main.py --config config/neural_network_qubit_cavity.yml --no_hyper_opt &

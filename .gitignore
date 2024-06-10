@@ -2,6 +2,10 @@
 __pycache__/
 *.py[cod]
 *$py.class
+*.zip
+*.pdf
+*.png
+*.json
 
 # Distribution / packaging
 .Python
@@ -66,9 +70,13 @@ logs/
 # Data
 data/*.json
 data/*.csv
+data/multi-label_classification/
 
 # Figures
 figures/
 
 # Dev
 dev*.*
+
+# Predictions
+predictions
