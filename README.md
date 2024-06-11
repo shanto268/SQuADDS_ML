@@ -1,6 +1,10 @@
 # Physics Informed ML Interpolation for SQuADDS
 
+
+**Note: The documentation below is not updated with information on how to run the simulations on HPC and the models used.**
+
 This project aims to predict the geometrical parameters of a qubit-cavity system given its Hamiltonian parameters using advanced machine learning techniques to replace [SQuADDS](https://arxiv.org/pdf/2312.13483) physics-based interpolation logic. The primary goal is to achieve high prediction accuracy, with an R-squared value greater than 0.9. The project involves training various machine learning models and integrating them into a framework that allows for easy experimentation and real-time predictions.
+
 
 ## Table of Contents
 
